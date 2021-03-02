@@ -2,6 +2,6 @@
 
 ### Download and Install
    
-  library(devtools)
+    library(devtools)
    
-  install_github("KevinBastianYang/CLIF",auth_token = "3c8b47b19256505ef76d1046b25e1dc817d87ac8",dependencies =TRUE)
+    install_github("KevinBastianYang/CLIF",auth_token = "3c8b47b19256505ef76d1046b25e1dc817d87ac8",dependencies =TRUE)
