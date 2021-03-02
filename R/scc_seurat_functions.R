@@ -71,7 +71,7 @@ setMethod("RunPCA", signature(object = "SCC"), function(object,organization,...)
   return(object)
 })
 
-#' RunOpenTSNE
+#' RunTSNE
 #'
 #' @param object an SCC object
 #' @param organization the organization to run on
@@ -80,9 +80,9 @@ setMethod("RunPCA", signature(object = "SCC"), function(object,organization,...)
 #' @return an SCC object
 #' @export
 #'
-setGeneric("RunOpenTSNE",function(object,organization,...){standardGeneric("RunOpenTSNE")})
-setMethod("RunOpenTSNE", signature(object = "SCC"), function(object,organization,...) {
-  object@organizations[[organization]] <-  ReductionWrappers::DoopenTSNE(object@organizations[[organization]],...)
+setGeneric("RunTSNE",function(object,organization,...){standardGeneric("RunTSNE")})
+setMethod("RunTSNE", signature(object = "SCC"), function(object,organization,...) {
+  object@organizations[[organization]] <-  Seurat::RunTSNE(object@organizations[[organization]],...)
   return(object)
 })
 
