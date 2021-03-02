@@ -20,14 +20,14 @@
 #' @param n_threads integer,default:8
 #' the number of threads to use when constructing the matrix
 #'
-#' @return a Seurat object containing the clif matrix is returned
+#' @return a Seurat object containing the scc base matrix is returned
 #'
 #' @examples
 #'
 #' @export
 #'
 #'
-####to get the same result: set seed before runCLIF
+####to get the same result: set seed
 ####highly suggest to run ALRA for the exp_mat before
 scc_base <- function(exp_mat,...){
   UseMethod("scc_base", exp_mat)
@@ -133,14 +133,14 @@ scc_base.default <- function(exp_mat,species="human",cell_types_vec=NULL,metadat
   #if(!cell_pair_exp_matrix$is_saved) warning("The cell-cell Interaction matrix isn't saved")
 
 
-  message("Generating CLIF matrix ...")
+  message("Generating SCC matrix ...")
   stime <- system.time({bigstatsr::big_apply(X=cell_pair_exp_matrix,real_pairs=real_pairs,exp_data=exp_mat.x,ligand_cell_list=ligand_cell_list,
                                              ligand_index=ligand_index,recepts_index=recepts_index,receptor_cell_list=receptor_cell_list,gene_name_index=gene_name_index,ind = c(1:length(real_pairs)),
                                              new_builder_vec = coldirec_builder_vec,cal_pos_coldirection_vec=cal_pos_coldirection_vec,cell_names=cell_names,
                                              a.FUN = function(X,ind,real_pairs,exp_data,ligand_cell_list,ligand_index,recepts_index,receptor_cell_list,gene_name_index,new_builder_vec,cal_pos_coldirection_vec,cell_names)
                                              {new_builder_vec(X,ind,real_pairs,exp_data,ligand_cell_list,ligand_index,recepts_index,receptor_cell_list,gene_name_index,cal_pos_coldirection_vec,cell_names)}
                                              ,a.combine = 'c',ncores =n_threads)})
-  message(paste0("CLIF matrix generated. Run time: "),stime[3])
+  message(paste0("SCC matrix generated. Run time: "),stime[3])
 
   ####matrix cleaning
   sparse_mat <- as(cell_pair_exp_matrix[1:nrow(cell_pair_exp_matrix),1:ncol(cell_pair_exp_matrix)],"dgCMatrix")
