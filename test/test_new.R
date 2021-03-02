@@ -1,0 +1,19 @@
+library(SingleCellConnectome)
+spatial_data <- readRDS("/data/jyc/github_proj/dbit_seq/cell_paper/spatial_test_data.RDS")
+
+# Run SCC
+system.time({scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
+                               assay='alra',metadata = c("cell_types","position","cluster"),neighborhood_radius = 1,
+                               species = "mouse",downsampling = FALSE,sample_size_n = 10,autocrine =TRUE,n_threads = 8)})
+# Adapted Seurat Functions
+scc_obj <- FindVariableFeatures(scc_obj, organization = "pair_spatial",selection.method = "vst")
+scc_obj <- ScaleData(scc_obj, organization = "pair_spatial")
+scc_obj <- RunPCA(scc_obj, organization = "pair_spatial",features = VariableFeatures(object = scc_obj,organization = "pair_spatial"),seed.use = 34)
+scc_obj <- RunTSNE(object=scc_obj,organization = "pair_spatial",reduction = "pca",dims= 1:20,seed.use=as.integer(34))
+DimPlot(object=scc_obj,organization = "pair_spatial",reduction = "tsne",group.by="cp_types")
+
+Seurat::Idents(scc_obj@organizations$pair_spatial) <- scc_obj@organizations$pair_spatial@meta.data$cp_types
+
+FeaturePlot(object=scc_obj,organization = "pair_spatial",features=c("Adam10-Epha3","Adam12-Itga9","Adam9-Itga6"))
+
+DotPlot(object=scc_obj,organization = "pair_spatial",features=c("Adam10-Epha3","Adam12-Itga9","Adam9-Itga6"))
