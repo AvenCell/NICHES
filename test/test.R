@@ -22,8 +22,8 @@ system.time({scc_tmp <- runSCC(seu_obj = spatial_data_sub,organizations=c("pair"
 scc_tmp <- FindVariableFeatures(scc_tmp, organization = "pair_spatial",selection.method = "vst")
 scc_tmp <- ScaleData(scc_tmp, organization = "pair_spatial")
 scc_tmp <- RunPCA(scc_tmp, organization = "pair_spatial",features = VariableFeatures(object = scc_tmp,organization = "pair_spatial"),seed.use = 34)
-scc_tmp <- RunTSNE(object=scc_tmp,organization = "pair_spatial",reduction_use = "pca",reduction_save = "openTSNE",dims_use = 1:20,random_state=as.integer(34))
-DimPlot(object=scc_tmp,organization = "pair_spatial",reduction = "openTSNE",group.by="cp_types")
+scc_tmp <- RunTSNE(object=scc_tmp,organization = "pair_spatial",reduction = "pca",dims= 1:20,seed.use=as.integer(34))
+DimPlot(object=scc_tmp,organization = "pair_spatial",reduction = "tsne",group.by="cp_types")
 
 ### TODO:how to make the following funcion work
 #Idents(scc_tmp,organization = "pair_spatial") <- scc_tmp@organizations$pair_spatial@meta.data$cp_types

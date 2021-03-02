@@ -120,7 +120,7 @@ runSCC <- function(
       else{return(FALSE)}
     })
     names(direct_neighbor_token) <- colnames(position_aggregate)
-    print(sum(direct_neighbor_token))
+
     spatial_org_tmp <- subset(scc_base_obj,cells = colnames(scc_base_obj)[direct_neighbor_token])
     niche_mat <- rowsum(t(as.matrix(spatial_org_tmp@assays$RNA@data)), group=spatial_org_tmp@meta.data$receiver_cell)
 
