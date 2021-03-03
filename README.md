@@ -6,12 +6,17 @@
    
     install_github("KevinBastianYang/SingleCellConnectome",auth_token = "3c8b47b19256505ef76d1046b25e1dc817d87ac8",dependencies =TRUE)
 
-### Run example
+### Run example: as in test/test_new.R
 
+    library(SingleCellConnectome)
+    # load the (spatial) scrna-seq data
+    spatial_data <- readRDS("/data/jyc/github_proj/dbit_seq/cell_paper/spatial_test_data.RDS")
+
+    # Run SCC
     scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
                                assay='alra',metadata = c("seurat_clusters","position","cluster"),neighborhood_radius = 1,
                                species = "mouse",downsampling = FALSE,sample_size_n = 10,autocrine =TRUE,n_threads = 8)
-                               
+    # Downstream functions                 
     scc_obj <- FindVariableFeatures(scc_obj, organization = "pair_spatial",selection.method = "vst")
     scc_obj <- ScaleData(scc_obj, organization = "pair_spatial")
     scc_obj <- RunPCA(scc_obj, organization = "pair_spatial",features = VariableFeatures(object = scc_obj,organization = "pair_spatial"),seed.use = 34)
