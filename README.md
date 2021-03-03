@@ -9,14 +9,14 @@
 ### Run example: as in test/test_new.R
 
     library(SingleCellConnectome)
-    # load the (spatial) scrna-seq data: change the path to yours
+   ##### load the (spatial) scrna-seq data: change the path to yours
     spatial_data <- readRDS("./data/spatial_test_data.RDS")
 
-    # Run SCC
+   ##### Run SCC
     scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
                                assay='alra',metadata = c("seurat_clusters","position","cluster"),neighborhood_radius = 1,
                                species = "mouse",downsampling = FALSE,sample_size_n = 10,autocrine =TRUE,n_threads = 8)
-    # Downstream functions                 
+   ##### Downstream functions                 
     scc_obj <- FindVariableFeatures(scc_obj, organization = "pair_spatial",selection.method = "vst")
     scc_obj <- ScaleData(scc_obj, organization = "pair_spatial")
     scc_obj <- RunPCA(scc_obj, organization = "pair_spatial",features = VariableFeatures(object = scc_obj,organization = "pair_spatial"),seed.use = 34)
