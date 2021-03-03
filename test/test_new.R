@@ -1,7 +1,8 @@
 library(devtools)
 install_github("KevinBastianYang/SingleCellConnectome",auth_token = "3c8b47b19256505ef76d1046b25e1dc817d87ac8",dependencies =TRUE)
 library(SingleCellConnectome)
-spatial_data <- readRDS("/data/jyc/github_proj/dbit_seq/cell_paper/spatial_test_data.RDS")
+# load the (spatial) scrna-seq data: change the path to yours
+spatial_data <- readRDS("./data/spatial_test_data.RDS")
 
 # Run SCC
 system.time({scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
