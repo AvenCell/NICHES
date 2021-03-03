@@ -9,8 +9,8 @@
 ### Run example: as in test/test_new.R
 
     library(SingleCellConnectome)
-    # load the (spatial) scrna-seq data
-    spatial_data <- readRDS("/data/jyc/github_proj/dbit_seq/cell_paper/spatial_test_data.RDS")
+    # load the (spatial) scrna-seq data: change the path to yours
+    spatial_data <- readRDS("./data/spatial_test_data.RDS")
 
     # Run SCC
     scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
