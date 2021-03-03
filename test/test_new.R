@@ -5,7 +5,7 @@ spatial_data <- readRDS("/data/jyc/github_proj/dbit_seq/cell_paper/spatial_test_
 
 # Run SCC
 system.time({scc_obj <- runSCC(seu_obj = spatial_data,organizations=c("pair","pair_spatial","niche_spatial"),
-                               assay='alra',metadata = c("cell_types","position","cluster"),neighborhood_radius = 1,
+                               assay='alra',metadata = c("seurat_clusters","position","cluster"),neighborhood_radius = 1,
                                species = "mouse",downsampling = FALSE,sample_size_n = 10,autocrine =TRUE,n_threads = 8)})
 # Adapted Seurat Functions
 scc_obj <- FindVariableFeatures(scc_obj, organization = "pair_spatial",selection.method = "vst")
