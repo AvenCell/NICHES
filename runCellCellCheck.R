@@ -1,0 +1,115 @@
+object <- FFPE2
+LR.database <-  'fantom5'
+species <- "mouse"
+assay <-  'RNA'
+min.cells.per.ident <- 1
+#meta.data.to.map = c('nCount_SCT','orig.ident')
+meta.data.to.map = c('orig.ident')
+
+
+
+sys.small <- prepSeurat(object,assay,min.cells.per.ident)
+
+# jc: Load corresponding ligands and receptors
+lrs <- lr_load(LR.database,species,rownames(sys.small@assays[[assay]]))
+ligands <- lrs[['ligands']]
+receptors <- lrs[['receptors']]
+
+celltypes <- return_celltypes(sys.small)
+# Ligand dataset
+lig.list <- list()
+for (i in 1:length(celltypes)){
+  temp <-subset(sys.small,idents = celltypes[i])
+  lig.list[[i]] <- temp@assays[[assay]]@data[ligands,]
+}
+
+# Receptor dataset
+rec.list <- list()
+for (i in 1:length(celltypes)){
+  temp <- subset(sys.small,idents = celltypes[i])
+  rec.list[[i]] <- temp@assays[[assay]]@data[receptors,]
+}
+
+# For each celltype, create all the outgoing edges 
+# (to all celltypes -- this covers autocrine AND bi-directional signaling)
+lig.data <- list()
+rec.data <- list()
+scc.data <- list()
+sending.cell.idents <- list()
+receiving.cell.idents <- list()
+num_cp_check <- 0
+for (i in 1:length(celltypes)){
+#i <- 2 
+  # Define maximum number of comparisons for each pairing
+  num <- as.data.frame(table(Seurat::Idents(sys.small)))
+  num$sender.freq <- ncol(lig.list[[i]])
+  rownames(num) <- num$Var1
+  num <- num[,-1]
+  num <- num %>% dplyr::rowwise() %>% dplyr::mutate(max.possible = min(.data$Freq, .data$sender.freq))
+  num_cp_check <- num_cp_check + sum(num$max.possible)
+  # Craft the ligand side for a single sender to all other types
+  lig.temp <- list()
+  for (j in 1:length(celltypes)){ # here 'j' is every receiving cell type
+    lig.temp[[j]] <- lig.list[[i]][,sample(ncol(lig.list[[i]]), size = num[j,]$max.possible), drop = FALSE]
+  }
+  lig.data[[i]] <- do.call(cbind,lig.temp)
+  
+  # Craft the receptor side for a single sender to all other types
+  rec.temp <- list()
+  for (j in 1:length(celltypes)){
+    rec.temp[[j]] <- rec.list[[j]][,sample(ncol(rec.list[[j]]), size = num[j,]$max.possible), drop = FALSE]
+  }
+  rec.data[[i]] <- do.call(cbind,rec.temp)
+  
+  # Combine into partial SCC matrix  
+  scc.data[[i]] <- lig.data[[i]]*rec.data[[i]]
+  
+  rownames(scc.data[[i]]) <- paste(rownames(lig.data[[i]]),rownames(rec.data[[i]]),sep = '-')
+  colnames(scc.data[[i]]) <- paste(colnames(lig.data[[i]]),colnames(rec.data[[i]]),sep = '-')
+  
+  sending.cell.idents[[i]] <- as.character(Seurat::Idents(sys.small)[colnames(lig.data[[i]])])
+  receiving.cell.idents[[i]] <- as.character(Seurat::Idents(sys.small)[colnames(rec.data[[i]])])
+  
+}
+
+
+# Combine all of these to make the full SCC matrix
+scc <- do.call(cbind,scc.data)
+
+#Use this matrix to create a Seurat object:
+demo <- Seurat::CreateSeuratObject(counts = as.matrix(scc),assay = 'CellToCell')
+
+# Gather and assemble metadata based on "ident" slot
+sending.cell.idents.2 <- do.call(c,sending.cell.idents)
+receiving.cell.idents.2 <- do.call(c,receiving.cell.idents)
+meta.data.to.add <- data.frame(SendingType = sending.cell.idents.2,
+                               ReceivingType = receiving.cell.idents.2)
+rownames(meta.data.to.add) <- colnames(scc)
+meta.data.to.add$VectorType <- paste(meta.data.to.add$SendingType,
+                                     meta.data.to.add$ReceivingType,
+                                     sep = '-')
+#Add ident metadata
+demo <- Seurat::AddMetaData(demo,metadata = meta.data.to.add)
+
+# Gather and assemble additional metadata
+if (!is.null(meta.data.to.map)){
+  # Identify sending and receiving barcodes
+  sending.barcodes <- colnames(do.call(cbind,lig.data)) #This can be simplified if the above SCC construction is simplified
+  receiving.barcodes <- colnames(do.call(cbind,rec.data)) #This can be simplified if the above SCC construction is simplified
+  # Pull and format sending and receiving metadata
+  sending.metadata <- as.matrix(object@meta.data[,meta.data.to.map][sending.barcodes,])
+  receiving.metadata <- as.matrix(object@meta.data[,meta.data.to.map][receiving.barcodes,])
+  # Make joint metadata
+  datArray <- abind::abind(sending.metadata,receiving.metadata,along=3)
+  joint.metadata <- as.matrix(apply(datArray,1:2,function(x)paste(x[1],"-",x[2])))
+  # Define column names
+  colnames(joint.metadata) <- paste(colnames(sending.metadata),'Joint',sep = '.')
+  colnames(sending.metadata) <- paste(colnames(sending.metadata),'Sending',sep='.')
+  colnames(receiving.metadata) <- paste(colnames(receiving.metadata),'Receiving',sep='.')
+  # Compile
+  meta.data.to.add.also <- cbind(sending.metadata,receiving.metadata,joint.metadata)
+  rownames(meta.data.to.add.also) <- paste(sending.barcodes,receiving.barcodes,sep='-')
+  # Add additional metadata
+  demo <- Seurat::AddMetaData(demo,metadata = as.data.frame(meta.data.to.add.also))
+}
+

@@ -1,3 +1,6 @@
+# TODO: cell type input is a requirement
+# TODO: index error: object@meta.data[,meta.data.to.map] will return a vector if it's just one meta.data.to.map
+
 #' RunCellToCell
 #' 
 #' Performs cell-cell transformation on a Seurat object, with structural downsampling to avoid data-inflation. Outputs another Seurat object, but where the columns of the matrix are 
@@ -39,15 +42,15 @@ RunCellToCell <- function(object,
   # Ligand dataset
   lig.list <- list()
   for (i in 1:length(celltypes)){
-    temp <- Seurat::subset(sys.small,idents = celltypes[i])
-    lig.list[[i]] <- temp@assays[[assay]]@data[ligands,]
+    temp <- subset(sys.small,idents  = celltypes[i])
+    lig.list[[i]] <- temp@assays[[assay]]@data[ligands,,drop=FALSE]
   }
   
   # Receptor dataset
   rec.list <- list()
   for (i in 1:length(celltypes)){
-    temp <- Seurat::subset(sys.small,idents = celltypes[i])
-    rec.list[[i]] <- temp@assays[[assay]]@data[receptors,]
+    temp <- subset(sys.small,idents = celltypes[i])
+    rec.list[[i]] <- temp@assays[[assay]]@data[receptors,,drop=FALSE]
   }
   
   # For each celltype, create all the outgoing edges 

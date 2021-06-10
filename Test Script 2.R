@@ -1,9 +1,9 @@
-require(SCC)
-require(Seurat)
+library(SCC)
 # Load Data
-emb <- readRDS("~/Box Sync/Kluger_Lab/Spatial SCC/spatial_seurat_processed_main.rds")
+emb <- readRDS("/data/jyc/github_proj/dbit_seq/FFPE_paper/DBiT-seq_FFPE/Example_Data/spatial_seurat_processed_main.RDS")
 
 #Pull out one slide only
+library(Seurat)
 FFPE2 <- subset(emb,idents=c("E10.5 tail"))
 DefaultAssay(FFPE2) <- "RNA"
 Idents(FFPE2) <- FFPE2$cell_label_dom
@@ -18,27 +18,16 @@ FFPE2$y <- temp$X2
 
 # Testing runs
 test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellToCell = T,CellToSystem = T,SystemToCell = T,
-               CellToCellSpatial = F,CellToNeighborhood = F,NeighborhoodToCell = F,meta.data.to.map = c('nCount_SCT','orig.ident')) #works
+               CellToCell = F,CellToSystem = F,SystemToCell = F,
+               CellToCellSpatial =T,CellToNeighborhood = F,NeighborhoodToCell =F,meta.data.to.map = c('nCount_SCT','orig.ident')) #works
 
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellToCell = F,CellToSystem = T,SystemToCell = F,
-               CellToCellSpatial = F,CellToNeighborhood = F,NeighborhoodToCell = F) #works
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellCell = F,CellSystem = F,SystemCell = T,
-               CellCellSpatial = F,CellNeighborhood = F,NeighborhoodCell = F) #works
+# Check with my previous implementation
+library(SingleCellConnectome)
+FFPE2$cell_types <- FFPE2$cell_label_dom
+test1 <- SingleCellConnectome::runSCC(seu_obj = FFPE2,assay = "RNA",organizations = c("pair","pair_spatial"),metadata = c("cell_types","position"),species = "mouse",neighborhood_radius = 1,autocrine = T,n_threads = 8,downsampling = FALSE)
 
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellToCell = T,CellToSystem = T,SystemToCell = T,
-               CellToCellSpatial = T,CellToNeighborhood = F,NeighborhoodToCell = F) #works
+test2 <- SingleCellConnectome::runSCC(seu_obj = FFPE2,assay = "RNA",organizations = c("pair"),metadata = c("cell_types","position"),species = "mouse",neighborhood_radius = 1,autocrine = T,n_threads = 8,downsampling = FALSE)
 
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellCell = F,CellSystem = F,SystemCell = F,
-               CellCellSpatial = F,CellNeighborhood = T,NeighborhoodCell = F)
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellCell = F,CellSystem = F,SystemCell = F,
-               CellCellSpatial = F,CellNeighborhood = F,NeighborhoodCell = T)
-test <- RunSCC(FFPE2,species = 'mouse',position.x = 'x',position.y = 'y',
-               CellCell = T,CellSystem = T,SystemCell = T,
-               CellCellSpatial = T,CellNeighborhood = F,NeighborhoodCell = F) #works
-test
+test_rowsum <- rowSums(as.matrix(test[[1]]@assays$CellToCellSpatial@counts[r1,]))
+test1_rowsum <- rowSums(as.matrix(test1@organizations[[2]]@assays$RNA@counts[r1,]))
+sum(test_rowsum!=test1_rowsum)

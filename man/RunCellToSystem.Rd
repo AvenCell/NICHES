@@ -26,6 +26,8 @@ RunCellToSystem(
 \item{min.cells.per.ident}{Default 1. A limit on how small (how many cells) a single population can be to participate in connectomic crossings.}
 
 \item{blend}{Choice of linear operator to combine edges. Defaults to "sum", also accepts "mean"}
+
+\item{meta.data.to.map}{}
 }
 \description{
 Condenses all signaling edges coming from each cell within a Seurat object connecting to every other cell in the system, treated as a single sink.

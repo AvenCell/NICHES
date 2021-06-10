@@ -1,3 +1,8 @@
+## TODO: check the correctness
+## Bug 1: line 42:
+## min.cells.per.ident will remove cells, so one should use 'sys.small' instead of 'object'
+## as object name
+
 #' RunCellToCellSpatial
 #' 
 #' @param object A Seurat 4.0 object. The active identity will be used to define populations for connectomic sampling and crossings.
@@ -17,7 +22,8 @@ RunCellToCellSpatial <- function(object,
                           assay = 'RNA',
                           min.cells.per.ident = 1,
                           position.x,
-                          position.y){
+                          position.y,
+                          rad){
   
 
   # jc: wrapped the preprocessing steps
@@ -34,7 +40,7 @@ RunCellToCellSpatial <- function(object,
   # Create adjacency matrix
   # Adapted from :: https://stackoverflow.com/questions/16075232/how-to-create-adjacency-matrix-from-grid-coordinates-in-r
   # Setup numbering and labeling
-  df <- data.frame(x = object[[position.x]], y = object[[position.y]])
+  df <- data.frame(x = sys.small[[position.x]], y = sys.small[[position.y]])
   df$barcode <- rownames(df)
   df$x <- as.character(df$x)
   df$y <- as.character(df$y)
@@ -44,7 +50,7 @@ RunCellToCellSpatial <- function(object,
   
   # Make adj matrix
   # Within a circle of radius "rad" around each coordinate (Set rad = 1 for only direct neighbors)
-  rad = 1
+  #rad = 1
   result <- apply(df, 1, function(pt) 
     (sqrt(abs(pt["x"] - df$x)^2 + abs(pt["y"] - df$y)^2) <= rad) 
   )
@@ -57,13 +63,11 @@ RunCellToCellSpatial <- function(object,
   edgelist <- igraph::get.data.frame(edgelist)
   
   # Make ligand matrix
-
     lig.data <- sys.small@assays[[assay]]@data[ligands,edgelist$from]
-  
+    
   # Make receptor matrix
 
     rec.data <- sys.small@assays[[assay]]@data[receptors,edgelist$to]
-  
   
   # Make SCC matrix
   scc <- lig.data*rec.data

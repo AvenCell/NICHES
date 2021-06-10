@@ -39,6 +39,18 @@ RunSCC(
 
 \item{position.y}{The name of the meta.data column specifying location on the spatial y-axis. Only relevant for spatial omics data.}
 
+\item{CellToCell}{}
+
+\item{CellToSystem}{}
+
+\item{SystemToCell}{}
+
+\item{CellToCellSpatial}{}
+
+\item{CellToNeighborhood}{}
+
+\item{NeighborhoodToCell}{}
+
 \item{...}{Additional parameters to pass to RunCellToCell, RunSystemToCell, RunCellToSystem, or spatial equivalents}
 }
 \description{

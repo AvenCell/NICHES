@@ -1,3 +1,11 @@
+# Direction 1: each runscc can get called, but there will be much redundancy when running RunSCC (e.g. load lr multi times)
+
+# Direction 2: RunSCC wraps the shared functions in each runscc, each runscc only keeps its essential section. User can only interact with RunSCC 
+# By doing this, the user can still run specific organization through the parameter switches
+
+# Bug: min.cells.per.ident needs to be passed to each function
+
+
 #' RunSCC
 #' 
 #' Performs Single-Cell Connectivity (SCC) transformations on a Seurat object. 
@@ -13,6 +21,12 @@
 #' @param meta.data.to.map A character vector of metadata names present in the original object which will be carried to the SCC objects
 #' @param position.x The name of the meta.data column specifying location on the spatial x-axis. Only relevant for spatial omics data.
 #' @param position.y The name of the meta.data column specifying location on the spatial y-axis. Only relevant for spatial omics data.
+#' @param CellToCell 
+#' @param CellToSystem 
+#' @param SystemToCell 
+#' @param CellToCellSpatial 
+#' @param CellToNeighborhood 
+#' @param NeighborhoodToCell 
 #' @param ... Additional parameters to pass to RunCellToCell, RunSystemToCell, RunCellToSystem, or spatial equivalents
 #'
 #' @export
@@ -32,15 +46,16 @@ RunSCC <- function(object,
                         CellToCellSpatial = T,
                         CellToNeighborhood = F,
                         NeighborhoodToCell = T,
+                        rad= 1,
                         ...){
    # Initialize output structure
   output <- list()
   
   # Calculate SCC organizations without spatial restrictions
   
-  if (CellToCell == T){output[[length(output)+1]] <- RunCellToCell(object,species = species,meta.data.to.map = meta.data.to.map,...)}
-  if (CellToSystem == T){output[[length(output)+1]] <- RunCellToSystem(object,species = species,meta.data.to.map = meta.data.to.map,...)}
-  if (SystemToCell == T){output[[length(output)+1]] <- RunSystemToCell(object,species = species,meta.data.to.map = meta.data.to.map,...)}
+  if (CellToCell == T){output[[length(output)+1]] <- RunCellToCell(object,assay = assay,species = species,meta.data.to.map = meta.data.to.map,min.cells.per.ident=min.cells.per.ident,...)}
+  if (CellToSystem == T){output[[length(output)+1]] <- RunCellToSystem(object,assay = assay,species = species,meta.data.to.map = meta.data.to.map,min.cells.per.ident=min.cells.per.ident,...)}
+  if (SystemToCell == T){output[[length(output)+1]] <- RunSystemToCell(object,assay = assay,species = species,meta.data.to.map = meta.data.to.map,min.cells.per.ident=min.cells.per.ident,...)}
   
   # If requested, additionally calculate spatially-limited SCC organizations
   
@@ -52,9 +67,9 @@ RunSCC <- function(object,
   
   }
   
-  if (CellToCellSpatial == T){output[[length(output)+1]] <- RunCellToCellSpatial(object,species = species,position.x = position.x,position.y = position.y,...)} #Spatially-limited Cell-Cell vectors
-  if (CellToNeighborhood == T){output[[length(output)+1]] <- RunCellToNeighborhood(object,species = species,position.x = position.x,position.y = position.y,...)} #Spatially-limited Cell-Neighborhood vectors
-  if (NeighborhoodToCell == T){output[[length(output)+1]] <- RunNeighborhoodToCell(object,species = species,position.x = position.x,position.y = position.y,...)} #Spatially-limited Neighborhood-Cell vectors (niches)
+  if (CellToCellSpatial == T){output[[length(output)+1]] <- RunCellToCellSpatial(object,assay = assay, species = species,position.x = position.x,position.y = position.y,rad=rad,min.cells.per.ident=min.cells.per.ident,...)} #Spatially-limited Cell-Cell vectors
+  if (CellToNeighborhood == T){output[[length(output)+1]] <- RunCellToNeighborhood(object,assay = assay, species = species,position.x = position.x,position.y = position.y,min.cells.per.ident=min.cells.per.ident,...)} #Spatially-limited Cell-Neighborhood vectors
+  if (NeighborhoodToCell == T){output[[length(output)+1]] <- RunNeighborhoodToCell(object,assay = assay, species = species,position.x = position.x,position.y = position.y,min.cells.per.ident=min.cells.per.ident,...)} #Spatially-limited Neighborhood-Cell vectors (niches)
 
   # Compile objects for output
   return(output)
